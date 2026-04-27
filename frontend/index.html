@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkillFlow</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      background: #1a1d27;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #2a2d3e;
+    }
+    .logo { font-size: 22px; font-weight: 700; color: #7c6af7; letter-spacing: 1px; }
+    .nav-links { display: flex; gap: 12px; }
+    .nav-btn {
+      background: transparent;
+      border: 1px solid #7c6af7;
+      color: #7c6af7;
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover, .nav-btn.active { background: #7c6af7; color: #fff; }
+    .nav-btn.danger { border-color: #e05c5c; color: #e05c5c; }
+    .nav-btn.danger:hover { background: #e05c5c; color: #fff; }
+
+    /* PAGES */
+    .page { display: none; padding: 40px 32px; max-width: 1100px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    /* AUTH */
+    .auth-container {
+      max-width: 420px;
+      margin: 60px auto;
+      background: #1a1d27;
+      border-radius: 16px;
+      padding: 40px;
+      border: 1px solid #2a2d3e;
+    }
+    .auth-container h2 { font-size: 24px; margin-bottom: 8px; color: #fff; }
+    .auth-container p { color: #888; margin-bottom: 28px; font-size: 14px; }
+    .auth-tabs { display: flex; gap: 0; margin-bottom: 28px; border-radius: 8px; overflow: hidden; border: 1px solid #2a2d3e; }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 14px;
+      background: transparent;
+      border: none;
+      color: #888;
+      transition: all 0.2s;
+    }
+    .auth-tab.active { background: #7c6af7; color: #fff; }
+
+    /* FORMS */
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; color: #888; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      background: #0f1117;
+      border: 1px solid #2a2d3e;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus, select:focus { border-color: #7c6af7; }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: #7c6af7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #6857e0; }
+    .btn.secondary { background: #2a2d3e; color: #e0e0e0; }
+    .btn.secondary:hover { background: #353848; }
+
+    /* ALERT */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .alert.error { background: #2d1a1a; color: #e05c5c; border: 1px solid #e05c5c44; display: block; }
+    .alert.success { background: #1a2d1e; color: #4caf7d; border: 1px solid #4caf7d44; display: block; }
+
+    /* DASHBOARD */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .page-header h2 { font-size: 26px; color: #fff; }
+    .badge {
+      background: #7c6af7;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.green { background: #4caf7d; }
+    .badge.orange { background: #e09a3a; }
+
+    /* GRID */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+    /* CARD */
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2a2d3e;
+      border-radius: 14px;
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover { border-color: #7c6af7; transform: translateY(-2px); }
+    .card h3 { font-size: 17px; color: #fff; margin-bottom: 8px; }
+    .card p { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.5; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; }
+    .card-btn {
+      padding: 8px 16px;
+      background: #7c6af7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .card-btn:hover { background: #6857e0; }
+    .card-btn.enrolled { background: #2a2d3e; color: #4caf7d; cursor: default; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #1a1d27;
+      border: 1px solid #2a2d3e;
+      border-radius: 16px;
+      padding: 36px;
+      width: 100%;
+      max-width: 460px;
+    }
+    .modal h3 { font-size: 20px; color: #fff; margin-bottom: 20px; }
+    .modal-footer { display: flex; gap: 12px; margin-top: 20px; }
+
+    /* USER INFO */
+    .user-info {
+      background: #1a1d27;
+      border: 1px solid #2a2d3e;
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .user-info h3 { font-size: 20px; color: #fff; margin-bottom: 6px; }
+    .user-info p { color: #888; font-size: 14px; }
+    .info-row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+
+    /* EMPTY STATE */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #555;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty p { font-size: 15px; }
+
+    /* LOADER */
+    .loader {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #2a2d3e;
+      border-top-color: #7c6af7;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* MODULES */
+    .module-item {
+      background: #1a1d27;
+      border: 1px solid #2a2d3e;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .module-item h4 { color: #fff; margin-bottom: 4px; font-size: 15px; }
+    .module-item p { color: #888; font-size: 13px; }
+
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: #0f1117;
+      border: 1px solid #2a2d3e;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 14px;
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+    }
+    textarea:focus { border-color: #7c6af7; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">⚡ SkillFlow</div>
+  <div class="nav-links" id="navLinks">
+    <button class="nav-btn active" onclick="showPage('courses')">Courses</button>
+    <button class="nav-btn" onclick="showPage('my-courses')">My Courses</button>
+    <button class="nav-btn" onclick="showPage('profile')">Profile</button>
+    <button class="nav-btn danger" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- AUTH PAGE -->
+<div class="page active" id="page-auth">
+  <div class="auth-container">
+    <h2>Welcome back 👋</h2>
+    <p>Sign in to continue learning</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+      <button class="auth-tab" onclick="switchTab('register')">Register</button>
+    </div>
+    <div id="authAlert"></div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••"/>
+      </div>
+      <button class="btn" onclick="login()">Sign In</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="John Doe"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="••••••••"/>
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="regRole">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button class="btn" onclick="register()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- COURSES PAGE -->
+<div class="page" id="page-courses">
+  <div class="page-header">
+    <h2>All Courses</h2>
+    <button class="nav-btn" id="createCourseBtn" style="display:none" onclick="openCreateCourse()">+ New Course</button>
+  </div>
+  <div id="coursesList" class="grid"></div>
+</div>
+
+<!-- MY COURSES PAGE -->
+<div class="page" id="page-my-courses">
+  <div class="page-header">
+    <h2>My Courses</h2>
+  </div>
+  <div id="myCoursesGrid" class="grid"></div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="page" id="page-profile">
+  <div class="page-header">
+    <h2>My Profile</h2>
+  </div>
+  <div id="profileInfo"></div>
+</div>
+
+<!-- COURSE DETAIL PAGE -->
+<div class="page" id="page-course-detail">
+  <button class="nav-btn" style="margin-bottom:24px" onclick="showPage('courses')">← Back</button>
+  <div id="courseDetailContent"></div>
+</div>
+
+<!-- CREATE COURSE MODAL -->
+<div class="modal-overlay" id="createCourseModal">
+  <div class="modal">
+    <h3>Create New Course</h3>
+    <div id="createCourseAlert"></div>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="courseTitle" placeholder="Course title"/>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="courseDesc" placeholder="Course description..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" onclick="closeModal('createCourseModal')">Cancel</button>
+      <button class="btn" onclick="createCourse()">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8000';
+  let token = localStorage.getItem('token');
+  let currentUser = null;
+
+  // INIT
+  window.onload = () => {
+    if (token) initApp();
+    else showAuthPage();
+  };
+
+  function showAuthPage() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-auth').classList.add('active');
+    document.getElementById('navLinks').style.display = 'none';
+  }
+
+  async function initApp() {
+    document.getElementById('navLinks').style.display = 'flex';
+    try {
+      const res = await apiFetch('/users/me');
+      currentUser = res;
+      if (currentUser.role === 'admin') {
+        document.getElementById('createCourseBtn').style.display = 'block';
+      }
+      showPage('courses');
+    } catch {
+      logout();
+    }
+  }
+
+  // AUTH TABS
+  function switchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('authAlert').innerHTML = '';
+  }
+
+  // LOGIN
+  async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Login failed');
+      token = data.access_token;
+      localStorage.setItem('token', token);
+      initApp();
+    } catch (e) {
+      showAlert('authAlert', e.message, 'error');
+    }
+  }
+
+  // REGISTER
+  async function register() {
+    const body = {
+      full_name: document.getElementById('regName').value,
+      email: document.getElementById('regEmail').value,
+      password: document.getElementById('regPassword').value,
+      role: document.getElementById('regRole').value
+    };
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Registration failed');
+      showAlert('authAlert', 'Account created! Please login.', 'success');
+      switchTab('login');
+    } catch (e) {
+      showAlert('authAlert', e.message, 'error');
+    }
+  }
+
+  function logout() {
+    token = null;
+    currentUser = null;
+    localStorage.removeItem('token');
+    showAuthPage();
+  }
+
+  // PAGES
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${name}`).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if (name === 'courses') { loadCourses(); document.querySelectorAll('.nav-btn')[0].classList.add('active'); }
+    if (name === 'my-courses') { loadMyCourses(); document.querySelectorAll('.nav-btn')[1].classList.add('active'); }
+    if (name === 'profile') { loadProfile(); document.querySelectorAll('.nav-btn')[2].classList.add('active'); }
+  }
+
+  // API HELPER
+  async function apiFetch(url, options = {}) {
+    const res = await fetch(`${API}${url}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...(options.headers || {})
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Error');
+    return data;
+  }
+
+  // COURSES
+  async function loadCourses() {
+    const el = document.getElementById('coursesList');
+    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+    try {
+      const data = await apiFetch('/courses/');
+      const enrollments = await apiFetch('/enrollments/my');
+      const enrolledIds = enrollments.map(e => e.course_id);
+
+      if (!data.courses.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📚</div><p>No courses yet</p></div>';
+        return;
+      }
+      el.innerHTML = data.courses.map(c => `
+        <div class="card">
+          <h3>${c.title}</h3>
+          <p>${c.description || 'No description'}</p>
+          <div class="card-footer">
+            <button class="card-btn" onclick="viewCourse(${c.id})">View →</button>
+            ${enrolledIds.includes(c.id)
+              ? '<span class="badge green">Enrolled</span>'
+              : `<button class="card-btn" onclick="enroll(${c.id}, this)">Enroll</button>`}
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      el.innerHTML = `<div class="empty"><p>${e.message}</p></div>`;
+    }
+  }
+
+  async function enroll(courseId, btn) {
+    try {
+      await apiFetch(`/enrollments/${courseId}`, { method: 'POST' });
+      btn.outerHTML = '<span class="badge green">Enrolled</span>';
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  // MY COURSES
+  async function loadMyCourses() {
+    const el = document.getElementById('myCoursesGrid');
+    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+    try {
+      const enrollments = await apiFetch('/enrollments/my');
+      if (!enrollments.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">🎓</div><p>You have not enrolled in any course yet</p></div>';
+        return;
+      }
+      const courses = await Promise.all(enrollments.map(e => apiFetch(`/courses/${e.course_id}`)));
+      el.innerHTML = courses.map(c => `
+        <div class="card">
+          <h3>${c.title}</h3>
+          <p>${c.description || 'No description'}</p>
+          <div class="card-footer">
+            <button class="card-btn" onclick="viewCourse(${c.id})">Open Course →</button>
+            <span class="badge green">Enrolled</span>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      el.innerHTML = `<div class="empty"><p>${e.message}</p></div>`;
+    }
+  }
+
+  // COURSE DETAIL
+  async function viewCourse(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-course-detail').classList.add('active');
+    const el = document.getElementById('courseDetailContent');
+    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+    try {
+      const course = await apiFetch(`/courses/${id}`);
+      const modules = await apiFetch(`/lessons/courses/${id}/modules`);
+
+      let modulesHtml = '';
+      for (const m of modules) {
+        const lessons = await apiFetch(`/lessons/modules/${m.id}/lessons`);
+        modulesHtml += `
+          <div class="module-item">
+            <h4>📦 Module ${m.order_index}: ${m.title}</h4>
+            ${lessons.length ? lessons.map(l => `
+              <div style="margin-top:10px; padding:12px; background:#0f1117; border-radius:8px">
+                <p style="color:#ccc; font-weight:600; margin-bottom:4px">📖 ${l.title}</p>
+                <p style="color:#888; font-size:13px">${l.content || 'No content'}</p>
+              </div>
+            `).join('') : '<p style="color:#555; font-size:13px; margin-top:8px">No lessons yet</p>'}
+          </div>`;
+      }
+
+      el.innerHTML = `
+        <div class="user-info" style="margin-bottom:24px">
+          <h3>${course.title}</h3>
+          <p>${course.description || 'No description'}</p>
+        </div>
+        <h3 style="color:#fff; margin-bottom:16px">Modules</h3>
+        ${modules.length ? modulesHtml : '<div class="empty"><div class="empty-icon">📭</div><p>No modules yet</p></div>'}
+      `;
+    } catch (e) {
+      el.innerHTML = `<div class="empty"><p>${e.message}</p></div>`;
+    }
+  }
+
+  // PROFILE
+  async function loadProfile() {
+    const el = document.getElementById('profileInfo');
+    if (!currentUser) return;
+    el.innerHTML = `
+      <div class="user-info">
+        <h3>${currentUser.full_name || 'No name'}</h3>
+        <p>${currentUser.email}</p>
+        <div class="info-row">
+          <span class="badge">${currentUser.role}</span>
+          <span class="badge ${currentUser.is_active ? 'green' : 'orange'}">${currentUser.is_active ? 'Active' : 'Inactive'}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // CREATE COURSE
+  function openCreateCourse() {
+    document.getElementById('createCourseModal').classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  async function createCourse() {
+    const title = document.getElementById('courseTitle').value;
+    const description = document.getElementById('courseDesc').value;
+    if (!title) { showAlert('createCourseAlert', 'Title is required', 'error'); return; }
+    try {
+      await apiFetch('/courses/', {
+        method: 'POST',
+        body: JSON.stringify({ title, description })
+      });
+      closeModal('createCourseModal');
+      document.getElementById('courseTitle').value = '';
+      document.getElementById('courseDesc').value = '';
+      loadCourses();
+    } catch (e) {
+      showAlert('createCourseAlert', e.message, 'error');
+    }
+  }
+
+  // UTILS
+  function showAlert(id, msg, type) {
+    const el = document.getElementById(id);
+    el.className = `alert ${type}`;
+    el.textContent = msg;
+  }
+</script>
+</body>
+</html>
