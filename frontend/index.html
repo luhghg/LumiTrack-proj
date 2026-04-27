@@ -338,6 +338,46 @@
   <div id="courseDetailContent"></div>
 </div>
 
+<!-- ADD MODULE MODAL -->
+<div class="modal-overlay" id="addModuleModal">
+  <div class="modal">
+    <h3>Add Module</h3>
+    <div id="addModuleAlert"></div>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="moduleTitle" placeholder="Module title"/>
+    </div>
+    <div class="form-group">
+      <label>Order</label>
+      <input type="number" id="moduleOrder" placeholder="1" value="1" min="1"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" onclick="closeModal('addModuleModal')">Cancel</button>
+      <button class="btn" onclick="submitModule()">Add Module</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LESSON MODAL -->
+<div class="modal-overlay" id="addLessonModal">
+  <div class="modal">
+    <h3>Add Lesson</h3>
+    <div id="addLessonAlert"></div>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="lessonTitle" placeholder="Lesson title"/>
+    </div>
+    <div class="form-group">
+      <label>Content</label>
+      <textarea id="lessonContent" placeholder="Lesson content..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" onclick="closeModal('addLessonModal')">Cancel</button>
+      <button class="btn" onclick="submitLesson()">Add Lesson</button>
+    </div>
+  </div>
+</div>
+
 <!-- CREATE COURSE MODAL -->
 <div class="modal-overlay" id="createCourseModal">
   <div class="modal">
@@ -539,21 +579,33 @@
   }
 
   // COURSE DETAIL
+  let activeCourseId = null;
+  let activeModuleId = null;
+
   async function viewCourse(id) {
+    activeCourseId = id;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-course-detail').classList.add('active');
+    await renderCourseDetail();
+  }
+
+  async function renderCourseDetail() {
     const el = document.getElementById('courseDetailContent');
     el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
     try {
-      const course = await apiFetch(`/courses/${id}`);
-      const modules = await apiFetch(`/lessons/courses/${id}/modules`);
+      const course = await apiFetch(`/courses/${activeCourseId}`);
+      const modules = await apiFetch(`/lessons/courses/${activeCourseId}/modules`);
+      const isAdmin = currentUser && currentUser.role === 'admin';
 
       let modulesHtml = '';
       for (const m of modules) {
         const lessons = await apiFetch(`/lessons/modules/${m.id}/lessons`);
         modulesHtml += `
           <div class="module-item">
-            <h4>📦 Module ${m.order_index}: ${m.title}</h4>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <h4>📦 Module ${m.order_index}: ${m.title}</h4>
+              ${isAdmin ? `<button class="card-btn" style="font-size:12px; padding:6px 12px" onclick="openAddLesson(${m.id})">+ Add Lesson</button>` : ''}
+            </div>
             ${lessons.length ? lessons.map(l => `
               <div style="margin-top:10px; padding:12px; background:#0f1117; border-radius:8px">
                 <p style="color:#ccc; font-weight:600; margin-bottom:4px">📖 ${l.title}</p>
@@ -568,11 +620,59 @@
           <h3>${course.title}</h3>
           <p>${course.description || 'No description'}</p>
         </div>
-        <h3 style="color:#fff; margin-bottom:16px">Modules</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+          <h3 style="color:#fff">Modules</h3>
+          ${isAdmin ? `<button class="nav-btn" onclick="openAddModule()">+ Add Module</button>` : ''}
+        </div>
         ${modules.length ? modulesHtml : '<div class="empty"><div class="empty-icon">📭</div><p>No modules yet</p></div>'}
       `;
     } catch (e) {
       el.innerHTML = `<div class="empty"><p>${e.message}</p></div>`;
+    }
+  }
+
+  function openAddModule() {
+    document.getElementById('moduleTitle').value = '';
+    document.getElementById('moduleOrder').value = '1';
+    document.getElementById('addModuleModal').classList.add('open');
+  }
+
+  function openAddLesson(moduleId) {
+    activeModuleId = moduleId;
+    document.getElementById('lessonTitle').value = '';
+    document.getElementById('lessonContent').value = '';
+    document.getElementById('addLessonModal').classList.add('open');
+  }
+
+  async function submitModule() {
+    const title = document.getElementById('moduleTitle').value;
+    const order_index = parseInt(document.getElementById('moduleOrder').value);
+    if (!title) { showAlert('addModuleAlert', 'Title is required', 'error'); return; }
+    try {
+      await apiFetch(`/lessons/courses/${activeCourseId}/modules`, {
+        method: 'POST',
+        body: JSON.stringify({ title, order_index })
+      });
+      closeModal('addModuleModal');
+      renderCourseDetail();
+    } catch (e) {
+      showAlert('addModuleAlert', e.message, 'error');
+    }
+  }
+
+  async function submitLesson() {
+    const title = document.getElementById('lessonTitle').value;
+    const content = document.getElementById('lessonContent').value;
+    if (!title) { showAlert('addLessonAlert', 'Title is required', 'error'); return; }
+    try {
+      await apiFetch(`/lessons/modules/${activeModuleId}/lessons`, {
+        method: 'POST',
+        body: JSON.stringify({ title, content })
+      });
+      closeModal('addLessonModal');
+      renderCourseDetail();
+    } catch (e) {
+      showAlert('addLessonAlert', e.message, 'error');
     }
   }
 
